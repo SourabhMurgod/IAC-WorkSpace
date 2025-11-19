@@ -1,0 +1,23 @@
+connector:
+  name: KodeSystems
+  identifier: KodeSystems
+  description: ""
+  accountIdentifier: B-j8Q1a6Rgm9N6et6GQ6fA
+  orgIdentifier: default
+  projectIdentifier: default
+  type: Aws
+  spec:
+    credential:
+      type: ManualConfig
+      spec:
+        accessKey: AKIA347H2LDQY2CJQM6K
+        secretKeyRef: aws_secret_key
+      region: us-east-1
+    awsSdkClientBackOffStrategyOverride:
+      type: FixedDelayBackoffStrategy
+      spec:
+        fixedBackoff: 0
+        retryCount: 0
+    executeOnDelegate: false
+    proxy: false
+    ignoreTestConnection: false
