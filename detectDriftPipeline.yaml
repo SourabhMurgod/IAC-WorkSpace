@@ -1,0 +1,63 @@
+pipeline:
+  identifier: iacm_drift_detection_pipeline
+  name: IACM Drift Detection Pipeline
+  orgIdentifier: default
+  projectIdentifier: default
+  stages:
+    - stage:
+        description: Check for configuration drift in infrastructure
+        identifier: detect_drift
+        name: Detect Configuration Drift
+        spec:
+          execution:
+            steps:
+              - step:
+                  identifier: terraform_init
+                  name: Terraform Init
+                  spec:
+                    command: init
+                  timeout: 5m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: terraform_refresh_plan
+                  name: Terraform Refresh Plan
+                  spec:
+                    command: plan-refresh-only
+                  timeout: 10m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: destroy_approval
+                  name: Destroy Approval
+                  spec:
+                    approvalMessage: "WARNING: This will apply all infrastructure. Please confirm you want to proceed."
+                    approvers:
+                      disallowPipelineExecutor: false
+                      minimumCount: 1
+                      userGroups: []
+                    includePipelineExecutionHistory: true
+                  timeout: 1d
+                  type: IACMApproval
+              - step:
+                  identifier: terraform_refresh_apply
+                  name: Terraform Refresh Apply
+                  spec:
+                    command: apply-refresh-only
+                  timeout: 10m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: terraform_plan_drift
+                  name: Terraform Plan for Drift
+                  spec:
+                    command: detect-drift
+                  timeout: 140m
+                  type: IACMTerraformPlugin
+          platform:
+            arch: Amd64
+            os: Linux
+          runtime:
+            spec: {}
+            type: Cloud
+          workspace: AWS_Dev
+        tags: {}
+        type: IACM
+  tags: {}

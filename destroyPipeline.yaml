@@ -1,0 +1,62 @@
+pipeline:
+  identifier: iacm_destroy_pipeline
+  name: IACM Destroy Pipeline
+  orgIdentifier: default
+  projectIdentifier: default
+  stages:
+    - stage:
+        description: Destroy Terraform managed infrastructure
+        failureStrategies:
+          - onFailure:
+              action:
+                type: StageRollback
+              errors:
+                - AllErrors
+        identifier: destroy_infrastructure
+        name: Destroy Infrastructure
+        spec:
+          execution:
+            steps:
+              - step:
+                  identifier: terraform_init
+                  name: Terraform Init
+                  spec:
+                    command: init
+                  timeout: 5m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: terraform_plan_destroy
+                  name: Terraform Plan Destroy
+                  spec:
+                    command: plan-destroy
+                  timeout: 10m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: destroy_approval
+                  name: Destroy Approval
+                  spec:
+                    approvalMessage: "WARNING: This will DESTROY all infrastructure. Please confirm you want to proceed."
+                    approvers:
+                      disallowPipelineExecutor: false
+                      minimumCount: 1
+                      userGroups: []
+                    includePipelineExecutionHistory: true
+                  timeout: 1d
+                  type: IACMApproval
+              - step:
+                  identifier: terraform_destroy
+                  name: Terraform Destroy
+                  spec:
+                    command: destroy
+                  timeout: 15m
+                  type: IACMTerraformPlugin
+          platform:
+            arch: Amd64
+            os: Linux
+          runtime:
+            spec: {}
+            type: Cloud
+          workspace: AWS_Dev
+        tags: {}
+        type: IACM
+  tags: {}

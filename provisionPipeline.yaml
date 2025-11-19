@@ -1,0 +1,62 @@
+pipeline:
+  identifier: iacm_provision_pipeline
+  name: IACM Provision Pipeline
+  orgIdentifier: default
+  projectIdentifier: default
+  stages:
+    - stage:
+        description: Plan and apply Terraform changes
+        failureStrategies:
+          - onFailure:
+              action:
+                type: StageRollback
+              errors:
+                - AllErrors
+        identifier: provision_infrastructure
+        name: Provision Infrastructure
+        spec:
+          execution:
+            steps:
+              - step:
+                  identifier: terraform_init
+                  name: Terraform Init
+                  spec:
+                    command: init
+                  timeout: 5m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: terraform_plan
+                  name: Terraform Plan
+                  spec:
+                    command: plan
+                  timeout: 10m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: manual_approval
+                  name: Manual Approval
+                  spec:
+                    approvalMessage: Please review the Terraform plan and approve to proceed with apply
+                    approvers:
+                      disallowPipelineExecutor: false
+                      minimumCount: 1
+                      userGroups: []
+                    includePipelineExecutionHistory: true
+                  timeout: 1d
+                  type: IACMApproval
+              - step:
+                  identifier: terraform_apply
+                  name: Terraform Apply
+                  spec:
+                    command: apply
+                  timeout: 1h 40m
+                  type: IACMTerraformPlugin
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          workspace: AWS_Dev
+        tags: {}
+        type: IACM
+  tags: {}

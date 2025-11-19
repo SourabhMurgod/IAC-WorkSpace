@@ -1,0 +1,37 @@
+pipeline:
+  identifier: iacm_plan_pipeline
+  name: IACM Plan Pipeline
+  orgIdentifier: default
+  projectIdentifier: default
+  stages:
+    - stage:
+        description: Generate Terraform execution plan
+        identifier: plan_infrastructure
+        name: Plan Infrastructure
+        spec:
+          execution:
+            steps:
+              - step:
+                  identifier: terraform_init
+                  name: Terraform Init
+                  spec:
+                    command: init
+                  timeout: 5m
+                  type: IACMTerraformPlugin
+              - step:
+                  identifier: terraform_plan
+                  name: Terraform Plan
+                  spec:
+                    command: plan
+                  timeout: 10m
+                  type: IACMTerraformPlugin
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          workspace: AWS_Dev
+        tags: {}
+        type: IACM
+  tags: {}
